@@ -20,6 +20,18 @@ router.get('/', function(req, res){
   res.json({message: 'API initialized'})
 });
 
+router.get('/streams/publish', function(req, res){
+  res.json({message: 'publish route'});
+});
+
+router.get('/streams/subscribe', function(req, res){
+  res.json({message: 'subscribe route'});
+});
+
+router.get('/robots/metric/:robot_id', function(req, res){
+  res.json({message: `metric route for robot: ${req.params.robot_id}`})
+});
+
 app.use('/api', router);
 app.listen(port, function(){
   console.log(`api running on port ${port}`);
