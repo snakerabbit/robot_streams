@@ -3,12 +3,22 @@
   <head>
     <meta charset="utf-8">
     <title></title>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      var socket = io();
-    </script>
+
   </head>
   <body>
 
   </body>
+  <script>
+  var ws = new WebSocket('ws://localhost:40510');
+  // event emmited when connected
+  ws.onopen = function () {
+      console.log('websocket is connected ...')
+      // sending a send event to websocket server
+      ws.send('connected')
+  }
+  // event emmited when receiving message
+  ws.onmessage = function (ev) {
+      console.log(ev);
+  }
+  </script>
 </html>

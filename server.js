@@ -1,18 +1,8 @@
 
 var express = require('express');
 var bodyParser = require('body-parser');
-
 var app = express();
 var router = express.Router();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-io.on('connection', function(socket){
-  console.log('a user connected');
-});
-
-http.listen(3000, function(){
-  console.log('listening on *:3000');
-});
 
 var port = process.env.API_PORT || 3001;
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -31,11 +21,23 @@ router.get('/', function(req, res){
 });
 
 router.get('/streams/publish', function(req, res){
+    // res.sendFile(__dirname + '/index.html');
   //turns on websocket connection to robot and retrieves information
   //robot sends its ID
   //server opens websocket connection
   //robot sends its information periodically
   //save in local storage
+  var WebSocketServer = require('ws').Server
+  var wss = new WebSocketServer({port: 40510})
+  wss.on('connection', function (ws) {
+    ws.on('message', function (message) {
+      console.log('received: %s', message)
+    })
+    setInterval(
+      () => ws.send(`${new Date()}`),
+      1000
+    )
+  })
   res.json({message: 'publish route'});
 });
 
