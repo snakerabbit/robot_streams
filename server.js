@@ -1,11 +1,9 @@
-
 var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
 var router = express.Router();
 var WebSocketServer = require('ws').Server;
 var Heap = require('heap');
-
 var port = process.env.API_PORT || 3001;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -69,6 +67,8 @@ var data = {
   }
 };
 
+let subscribed = [];
+
 router.get('/streams/publish', function(req, res){
   //connects to robots and receives robot data
   var wss = new WebSocketServer({port: 40510});
@@ -81,30 +81,32 @@ router.get('/streams/publish', function(req, res){
         data['robots'][currentRobot].push(message);
       }
       console.log(`${currentRobot}'s' data: `, data['robots'][currentRobot]);
+      wss.clients.forEach(function each(client) {
+        if(subscribed.includes(currentRobot)){
+          client.send(message)
+        }
+
+      });
     })
+
     ws.on('close', function close() {
       console.log('disconnected');
-});
+    });
   })
   res.json({message: "publish route"});
 });
 
 router.get('/streams/subscribe', function(req, res){
-  let subscribedRobots = req.query.robots;
-  var wss = new WebSocketServer({port: 40511});
-
-  wss.on('connection', function (ws) {
-    ws.on('message', function (message) {
-      console.log('received', message);
-    })
-    subscribedRobots.forEach(bot =>{
-      ws.send(JSON.stringify(data['robots'][bot]));
-    })
-
-  })
-
+  subscribed = req.query.robots;
+  // var wss_beta = new WebSocketServer({port: 40511});
+  // wss_beta.on('connection', function (ws) {
+  //   console.log('subscribe server connected');
+  //   ws.on('close', function close() {
+  //     console.log('disconnected');
+  //   });
+  // })
   res.json({message: 'subscribe route',
-            subscribedTo: subscribedRobots});
+            subscribedTo: subscribed});
 });
 
 router.get('/robots/metric/:robot/', function(req, res){

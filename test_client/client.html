@@ -7,13 +7,11 @@
   <body>
   </body>
   <script>
-    var ws = new WebSocket('ws://localhost:40511');
+    var ws = new WebSocket('ws://localhost:40510');
     ws.onopen = function () {
-        console.log('websocket is connected ...')
-        ws.send('client is open')
+        console.log('client opened');
     }
     ws.onmessage = function (ev) {
-      let thisthing = ev.data;
         console.log(ev);
     }
   </script>
