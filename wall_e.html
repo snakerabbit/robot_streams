@@ -3,10 +3,9 @@
   <head>
     <meta charset="utf-8">
     <title></title>
-
   </head>
   <body>
-
+    <h1>Robot</h1>
   </body>
   <script>
   var ws = new WebSocket('ws://localhost:40510');
@@ -14,11 +13,23 @@
   ws.onopen = function () {
       console.log('websocket is connected ...')
       // sending a send event to websocket server
-      ws.send('connected')
+      let index = 0;
+      let dummyData = {
+          timestamp: 1523567889,
+          x: 0.1,
+          y: 1.3,
+          robot: "Wall_E"
+        }
+      setInterval(function(){
+        ws.send(JSON.stringify(dummyData));
+        dummyData.timestamp += 1
+      },
+        1000
+      )
   }
   // event emmited when receiving message
-  ws.onmessage = function (ev) {
-      console.log(ev);
-  }
+  // ws.onmessage = function (ev) {
+  //     console.log(ev);
+  // }
   </script>
 </html>

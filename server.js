@@ -20,33 +20,41 @@ router.get('/', function(req, res){
   res.json({message: 'API initialized'})
 });
 
+//storage
+var data = {
+  robots: {
+    "Wall_E":[],
+    "Baymax":[],
+    "NumberSix":[]
+  }
+};
+
 router.get('/streams/publish', function(req, res){
-    // res.sendFile(__dirname + '/index.html');
-  //turns on websocket connection to robot and retrieves information
-  //robot sends its ID
-  //server opens websocket connection
-  //robot sends its information periodically
-  //save in local storage
-  var WebSocketServer = require('ws').Server
-  var wss = new WebSocketServer({port: 40510})
+  //connects to robot and receives robot data
+  var WebSocketServer = require('ws').Server;
+  var wss = new WebSocketServer({port: 40510});
   wss.on('connection', function (ws) {
     ws.on('message', function (message) {
-      console.log('received: %s', message)
+      console.log('received message: %s', message);
+      let currentRobot = JSON.parse(message).robot;
+      console.log('robot: ', currentRobot);
+      if(data['robots'][currentRobot]){
+        data['robots'][currentRobot].push(message);
+      }
+      console.log(`${currentRobot}'s' data: `, data['robots'][currentRobot]);
     })
-    setInterval(
-      () => ws.send(`${new Date()}`),
-      1000
-    )
   })
-  res.json({message: 'publish route'});
+  res.json({message: "publish route"});
 });
 
 router.get('/streams/subscribe', function(req, res){
-  //subscribes to robot
-  res.json({message: 'subscribe route'});
+  let subscribedRobots = req.query.robots;
+
+  res.json({message: 'subscribe route',
+            subscribedTo: subscribedRobots});
 });
 
-router.get('/robots/metric/:robot_id/:start-:end', function(req, res){
+router.get('/robots/metric/:robot/', function(req, res){
   //shows robot distance within a certain time interval
   res.json({message: `metric route for robot`,
             robot:req.params.robot_id,
