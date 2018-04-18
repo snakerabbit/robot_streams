@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+  </body>
+  <script>
+    var ws = new WebSocket('ws://localhost:40511');
+    ws.onopen = function () {
+        console.log('websocket is connected ...')
+        ws.send('client is open')
+    }
+    ws.onmessage = function (ev) {
+      let thisthing = ev.data;
+        console.log(ev);
+    }
+  </script>
+</html>
