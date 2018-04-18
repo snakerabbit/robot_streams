@@ -5,16 +5,11 @@ var router = express.Router();
 var WebSocketServer = require('ws').Server;
 var Heap = require('heap');
 var port = process.env.API_PORT || 3001;
+
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(function(req, res, next) {
- res.setHeader('Access-Control-Allow-Origin', '*');
- res.setHeader('Access-Control-Allow-Credentials', 'true');
- res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT,DELETE');
- res.setHeader('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers');
- res.setHeader('Cache-Control', 'no-cache');
- next();
-});
+
 
 router.get('/', function(req, res){
   res.json({message: 'API initialized'})
@@ -67,10 +62,12 @@ var data = {
   }
 };
 
+
 let subscribed = [];
 
+
+//********************** PUBLISH ENDPOINT *************************************
 router.get('/streams/publish', function(req, res){
-  //connects to robots and receives robot data
   var wss = new WebSocketServer({port: 40510});
   wss.on('connection', function (ws) {
     ws.on('message', function (message) {
@@ -85,7 +82,6 @@ router.get('/streams/publish', function(req, res){
         if(subscribed.includes(currentRobot)){
           client.send(message)
         }
-
       });
     })
 
@@ -93,9 +89,11 @@ router.get('/streams/publish', function(req, res){
       console.log('disconnected');
     });
   })
-  res.json({message: "publish route"});
+  res.json({message: "Connect to the robots by opening the HTML files in ./test_client"});
 });
 
+
+//********************** SUBSCRIBE ENDPOINT *************************************
 router.get('/streams/subscribe', function(req, res){
   subscribed = req.query.robots;
   // var wss_beta = new WebSocketServer({port: 40511});
@@ -108,7 +106,7 @@ router.get('/streams/subscribe', function(req, res){
   res.json({message: 'subscribe route',
             subscribedTo: subscribed});
 });
-
+//********************** METRICS ENDPOINT *************************************
 router.get('/robots/metric/:robot/', function(req, res){
   let robot = req.params.robot;
   let robot_data = data['robots'][robot];
