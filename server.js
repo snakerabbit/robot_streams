@@ -3,8 +3,9 @@ var bodyParser = require('body-parser');
 var app = express();
 var router = express.Router();
 var WebSocketServer = require('ws').Server;
-var Heap = require('heap');
 var port = process.env.API_PORT || 3001;
+const NodeCache = require( "node-cache" );
+const myCache = new NodeCache();
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -15,8 +16,9 @@ router.get('/', function(req, res){
   res.json({message: 'API initialized'})
 });
 
+
 //********************** DUMMY DATA *************************************
-var data = {
+var DATA = {
   subscribed:[],
   robots: {
     "Wall_E":[],
@@ -63,7 +65,11 @@ var data = {
   }
 };
 
-
+  myCache.set( "data", DATA, function( err, success ){
+  if( !err && success ){
+    console.log('initial data saved');
+  }
+});
 
 //********************** PUBLISH ENDPOINT *************************************
 router.get('/streams/publish', function(req, res){
@@ -73,15 +79,17 @@ router.get('/streams/publish', function(req, res){
       console.log('received message: %s', message);
       let currentRobot = JSON.parse(message).robot;
       console.log('robot sending data: ', currentRobot);
+      let data = myCache.get('data');
       if(data['robots'][currentRobot]){
         data['robots'][currentRobot].push(message);
         if(data['robots'][currentRobot].length >= 3600){
           data['robots'][currentRobot].shift();
         }
       }
-      console.log(`${currentRobot}'s' data: `, data['robots'][currentRobot]);
+      myCache.set('data', data);
+      console.log(`${currentRobot}'s' data: `, myCache.get('data')['robots'][currentRobot]);
       wss.clients.forEach(function each(client) {
-        if(data.subscribed.includes(currentRobot)){
+        if(myCache.get('data').subscribed.includes(currentRobot)){
           client.send(message)
         }
       });
@@ -97,16 +105,18 @@ router.get('/streams/publish', function(req, res){
 
 //********************** SUBSCRIBE ENDPOINT *************************************
 router.get('/streams/subscribe', function(req, res){
+  let data = myCache.get('data');
   data.subscribed = req.query.robots;
+  myCache.set('data', data);
   res.json({message: 'subscribe route',
-            subscribedTo: data.subscribed});
+            subscribedTo: myCache.get('data').subscribed});
 });
 
 
 //********************** METRICS ENDPOINT *************************************
 router.get('/robots/metric/:robot/', function(req, res){
   let robot = req.params.robot;
-  let robot_data = data['robots'][robot];
+  let robot_data = myCache.get('data')['robots'][robot];
   if(!robot_data){
     res.send(`No robots found named ${robot}.  Please check your spelling`);
   }
