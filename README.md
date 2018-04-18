@@ -4,16 +4,16 @@
 The Robot Streams App is an API that utilizes web sockets to stream data from active robots, and to send data to clients.
 
 ## Technologies Used:
-* Express.JS
-* WebSocket
-* Node-Cache
+* Express.JS - backend
+* WebSocket - realtime data streaming
+* Node-Cache - data cache
 
 ## Get Started:
 * Download the project folder and `cd robot_streams-master` in the Mac Terminal to enter project folder.
 
 * Run `npm install` to install dependencies.
 
-* Run `nodemon server.js` to run the server.
+* Run `node server.js` to run the server.
 
 * Go to http://localhost:3001/api/ in your browser.  You should see this success message:
 ![alt text](https://image.ibb.co/jgXW97/Screen_Shot_2018_04_18_at_2_00_39_AM.png "API Initialized")
