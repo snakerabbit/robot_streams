@@ -25,7 +25,7 @@ Purpose: saves any data streaming from the active robots.
 How to Use:
 * Go to http://localhost:3001/api/streams/publish in browser.
 * Open any of the html files in the test_client/robots folder to activate the robot.  Please reference the Meet The Robots section to learn more about each robot.
-* Watch Mac Terminal running nodemon to see the streaming data in real time.
+* Watch Mac Terminal running node to see the streaming data in real time.
 ![alt text](https://image.ibb.co/g0yhGn/Screen_Shot_2018_04_18_at_2_28_03_AM.png "publish")
 
 
