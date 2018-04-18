@@ -99,7 +99,7 @@ router.get('/streams/publish', function(req, res){
       console.log('disconnected');
     });
   })
-  res.json({message: "Connect to the robots by opening the HTML files in ./test_client"});
+  res.json({message: "Connect to the robots by opening the HTML files in ./test_client/robots"});
 });
 
 
