@@ -15,16 +15,16 @@
       // sending a send event to websocket server
       let index = 0;
       let dummyData = {
-          timestamp: 1523567889,
+          timestamp: 10,
           x: 0.1,
           y: 1.3,
           robot: "Baymax"
         }
       setInterval(function(){
         ws.send(JSON.stringify(dummyData));
-        dummyData.timestamp += 1
+        dummyData.timestamp += 0.1
       },
-        5300
+        100
       )
   }
   // event emmited when receiving message

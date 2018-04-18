@@ -15,8 +15,9 @@ router.get('/', function(req, res){
   res.json({message: 'API initialized'})
 });
 
-//storage
+//********************** DUMMY DATA *************************************
 var data = {
+  subscribed:[],
   robots: {
     "Wall_E":[],
     "Baymax":[
@@ -27,15 +28,15 @@ var data = {
           robot: "Baymax"
         },
         {
-            timestamp: 1,
-            x: 0.1,
-            y: 1.3,
+            timestamp: 5,
+            x: 1.0,
+            y: 0,
             robot: "Baymax"
           },
         {
-              timestamp: 2,
-              x: 5.0,
-              y: 5.0,
+              timestamp: 9,
+              x: 0,
+              y: 0,
               robot: "Baymax"
             }
     ],
@@ -63,8 +64,6 @@ var data = {
 };
 
 
-let subscribed = [];
-
 
 //********************** PUBLISH ENDPOINT *************************************
 router.get('/streams/publish', function(req, res){
@@ -73,13 +72,16 @@ router.get('/streams/publish', function(req, res){
     ws.on('message', function (message) {
       console.log('received message: %s', message);
       let currentRobot = JSON.parse(message).robot;
-      console.log('robot: ', currentRobot);
+      console.log('robot sending data: ', currentRobot);
       if(data['robots'][currentRobot]){
         data['robots'][currentRobot].push(message);
+        if(data['robots'][currentRobot].length >= 3600){
+          data['robots'][currentRobot].shift();
+        }
       }
       console.log(`${currentRobot}'s' data: `, data['robots'][currentRobot]);
       wss.clients.forEach(function each(client) {
-        if(subscribed.includes(currentRobot)){
+        if(data.subscribed.includes(currentRobot)){
           client.send(message)
         }
       });
@@ -95,17 +97,12 @@ router.get('/streams/publish', function(req, res){
 
 //********************** SUBSCRIBE ENDPOINT *************************************
 router.get('/streams/subscribe', function(req, res){
-  subscribed = req.query.robots;
-  // var wss_beta = new WebSocketServer({port: 40511});
-  // wss_beta.on('connection', function (ws) {
-  //   console.log('subscribe server connected');
-  //   ws.on('close', function close() {
-  //     console.log('disconnected');
-  //   });
-  // })
+  data.subscribed = req.query.robots;
   res.json({message: 'subscribe route',
-            subscribedTo: subscribed});
+            subscribedTo: data.subscribed});
 });
+
+
 //********************** METRICS ENDPOINT *************************************
 router.get('/robots/metric/:robot/', function(req, res){
   let robot = req.params.robot;
@@ -113,18 +110,23 @@ router.get('/robots/metric/:robot/', function(req, res){
   if(!robot_data){
     res.send(`No robots found named ${robot}.  Please check your spelling`);
   }
-  let timestamps = robot_data.map(datum => datum.timestamp);
-  let min = robot_data.find(datum => datum.timestamp === req.query.start_time || datum.timestamp === Heap.nsmallest(timestamps, 1)[0]);
-  let max = robot_data.find(datum => datum.timestamp === req.query.end_time || datum.timestamp === Heap.nlargest(timestamps, 1)[0]);
-  if(req.query.start_time > min.timestamp || req.query.start_time > max.timestamp){
-    res.send('Invalid request.  Please check your start and end times');
+  if(req.query.start_time - req.query.end_time > 36000 || req.query.end_time < req.query.start_time){
+    res.send('Please select a valid time interval.  Time intervals should be less than 1 hour (3600 seconds).  Start time must be smaller than end time');
   }
-  let distance = Math.hypot(Math.abs(min.x - max.x), Math.abs(min.y-max.y));
+  let totalDistance = 0;
+  let previousDatum;
+  robot_data.forEach(datum =>{
+    if(datum.timestamp >= req.query.start_time && datum.timestamp <= req.query.end_time){
+      if(previousDatum){
+        totalDistance += Math.hypot(Math.abs(datum.x - previousDatum.x), Math.abs(datum.y-previousDatum.y));
+      }
+      previousDatum = datum;
+    }
+  });
+
   res.json({robot: req.params.robot,
             timeInterval: req.query,
-            min: min,
-            max: max,
-            distanceTraveled: distance
+            distanceTraveled: totalDistance
           })
 });
 
